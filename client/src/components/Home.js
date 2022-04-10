@@ -9,216 +9,234 @@ import { ActiveChat } from "../components/ActiveChat";
 import { SocketContext } from "../context/socket";
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    height: "100vh",
-  },
+	root: {
+		height: "100vh",
+	},
 }));
 
 const Home = ({ user, logout }) => {
-  const history = useHistory();
+	const history = useHistory();
 
-  const socket = useContext(SocketContext);
+	const socket = useContext(SocketContext);
 
-  const [conversations, setConversations] = useState([]);
-  const [activeConversation, setActiveConversation] = useState(null);
+	const [conversations, setConversations] = useState([]);
+	const [activeConversation, setActiveConversation] = useState(null);
 
-  const classes = useStyles();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const classes = useStyles();
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const addSearchedUsers = (users) => {
-    const currentUsers = {};
+	const addSearchedUsers = (users) => {
+		const currentUsers = {};
 
-    // make table of current users so we can lookup faster
-    conversations.forEach((convo) => {
-      currentUsers[convo.otherUser.id] = true;
-    });
+		// make table of current users so we can lookup faster
+		conversations.forEach((convo) => {
+			currentUsers[convo.otherUser.id] = true;
+		});
 
-    const newState = [...conversations];
-    users.forEach((user) => {
-      // only create a fake convo if we don't already have a convo with this user
-      if (!currentUsers[user.id]) {
-        let fakeConvo = { otherUser: user, messages: [] };
-        newState.push(fakeConvo);
-      }
-    });
+		const newState = [...conversations];
+		users.forEach((user) => {
+			// only create a fake convo if we don't already have a convo with this user
+			if (!currentUsers[user.id]) {
+				let fakeConvo = { otherUser: user, messages: [] };
+				newState.push(fakeConvo);
+			}
+		});
 
-    setConversations(newState);
-  };
+		setConversations(newState);
+	};
 
-  const clearSearchedUsers = () => {
-    setConversations((prev) => prev.filter((convo) => convo.id));
-  };
+	const clearSearchedUsers = () => {
+		setConversations((prev) => prev.filter((convo) => convo.id));
+	};
 
-  const saveMessage = async (body) => {
-    const { data } = await axios.post("/api/messages", body);
-    return data;
-  };
+	const saveMessage = async (body) => {
+		const { data } = await axios.post("/api/messages", body);
+		return data;
+	};
 
-  const sendMessage = (data, body) => {
-    socket.emit("new-message", {
-      message: data.message,
-      recipientId: body.recipientId,
-      sender: data.sender,
-    });
-  };
+	const sendMessage = (data, body) => {
+		socket.emit("new-message", {
+			message: data.message,
+			recipientId: body.recipientId,
+			sender: data.sender,
+		});
+	};
 
-  const postMessage = (body) => {
-    try {
-      const data = saveMessage(body);
+	// Bug fixed: turned postMessage into an async function
+	const postMessage = async (body) => {
+		try {
+			const data = await saveMessage(body);
 
-      if (!body.conversationId) {
-        addNewConvo(body.recipientId, data.message);
-      } else {
-        addMessageToConversation(data);
-      }
+			if (!body.conversationId) {
+				addNewConvo(body.recipientId, data.message);
+			} else {
+				addMessageToConversation(data);
+			}
+			sendMessage(data, body);
+		} catch (error) {
+			console.error(error);
+		}
+	};
 
-      sendMessage(data, body);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+	const addNewConvo = useCallback(
+		(recipientId, message) => {
+			// Bug fixed: refactored to use previous state rather than mutating state directly
+			setConversations((prev) => {
+				const updated = prev.map((convo) => {
+					if (convo.otherUser.id === recipientId) {
+						return {
+							...convo,
+							messages: [message],
+							latestMessageText: message.text,
+							id: message.conversationId,
+						};
+					} else {
+						return convo;
+					}
+				});
+				return [...updated];
+			});
+		},
+		[setConversations]
+	);
+	const addMessageToConversation = useCallback(
+		(data) => {
+			// if sender isn't null, that means the message needs to be put in a brand new convo
+			const { message, sender = null } = data;
 
-  const addNewConvo = useCallback(
-    (recipientId, message) => {
-      conversations.forEach((convo) => {
-        if (convo.otherUser.id === recipientId) {
-          convo.messages.push(message);
-          convo.latestMessageText = message.text;
-          convo.id = message.conversationId;
-        }
-      });
-      setConversations(conversations);
-    },
-    [setConversations, conversations],
-  );
-  const addMessageToConversation = useCallback(
-    (data) => {
-      // if sender isn't null, that means the message needs to be put in a brand new convo
-      const { message, sender = null } = data;
-      if (sender !== null) {
-        const newConvo = {
-          id: message.conversationId,
-          otherUser: sender,
-          messages: [message],
-        };
-        newConvo.latestMessageText = message.text;
-        setConversations((prev) => [newConvo, ...prev]);
-      }
+			if (sender !== null) {
+				const newConvo = {
+					id: message.conversationId,
+					otherUser: sender,
+					messages: [message],
+				};
+				newConvo.latestMessageText = message.text;
 
-      conversations.forEach((convo) => {
-        if (convo.id === message.conversationId) {
-          convo.messages.push(message);
-          convo.latestMessageText = message.text;
-        }
-      });
-      setConversations(conversations);
-    },
-    [setConversations, conversations],
-  );
+				setConversations((prev) => [newConvo, ...prev]);
+			}
 
-  const setActiveChat = (username) => {
-    setActiveConversation(username);
-  };
+			// Bug fixed: refactored to use previous state rather than mutating state directly
+			setConversations((prev) => {
+				const updated = prev.map((convo) => {
+					if (convo.id === message.conversationId) {
+						return {
+							...convo,
+							messages: [...convo.messages, message],
+							latestMessageText: message.text,
+						};
+					} else {
+						return convo;
+					}
+				});
+				return [...updated];
+			});
+		},
+		[setConversations, conversations]
+	);
 
-  const addOnlineUser = useCallback((id) => {
-    setConversations((prev) =>
-      prev.map((convo) => {
-        if (convo.otherUser.id === id) {
-          const convoCopy = { ...convo };
-          convoCopy.otherUser = { ...convoCopy.otherUser, online: true };
-          return convoCopy;
-        } else {
-          return convo;
-        }
-      }),
-    );
-  }, []);
+	const setActiveChat = (username) => {
+		setActiveConversation(username);
+	};
 
-  const removeOfflineUser = useCallback((id) => {
-    setConversations((prev) =>
-      prev.map((convo) => {
-        if (convo.otherUser.id === id) {
-          const convoCopy = { ...convo };
-          convoCopy.otherUser = { ...convoCopy.otherUser, online: false };
-          return convoCopy;
-        } else {
-          return convo;
-        }
-      }),
-    );
-  }, []);
+	const addOnlineUser = useCallback((id) => {
+		setConversations((prev) =>
+			prev.map((convo) => {
+				if (convo.otherUser.id === id) {
+					const convoCopy = { ...convo };
+					convoCopy.otherUser = { ...convoCopy.otherUser, online: true };
+					return convoCopy;
+				} else {
+					return convo;
+				}
+			})
+		);
+	}, []);
 
-  // Lifecycle
+	const removeOfflineUser = useCallback((id) => {
+		setConversations((prev) =>
+			prev.map((convo) => {
+				if (convo.otherUser.id === id) {
+					const convoCopy = { ...convo };
+					convoCopy.otherUser = { ...convoCopy.otherUser, online: false };
+					return convoCopy;
+				} else {
+					return convo;
+				}
+			})
+		);
+	}, []);
 
-  useEffect(() => {
-    // Socket init
-    socket.on("add-online-user", addOnlineUser);
-    socket.on("remove-offline-user", removeOfflineUser);
-    socket.on("new-message", addMessageToConversation);
+	// Lifecycle
 
-    return () => {
-      // before the component is destroyed
-      // unbind all event handlers used in this component
-      socket.off("add-online-user", addOnlineUser);
-      socket.off("remove-offline-user", removeOfflineUser);
-      socket.off("new-message", addMessageToConversation);
-    };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
+	useEffect(() => {
+		// Socket init
+		socket.on("add-online-user", addOnlineUser);
+		socket.on("remove-offline-user", removeOfflineUser);
+		socket.on("new-message", addMessageToConversation);
 
-  useEffect(() => {
-    // when fetching, prevent redirect
-    if (user?.isFetching) return;
+		return () => {
+			// before the component is destroyed
+			// unbind all event handlers used in this component
+			socket.off("add-online-user", addOnlineUser);
+			socket.off("remove-offline-user", removeOfflineUser);
+			socket.off("new-message", addMessageToConversation);
+		};
+	}, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
 
-    if (user && user.id) {
-      setIsLoggedIn(true);
-    } else {
-      // If we were previously logged in, redirect to login instead of register
-      if (isLoggedIn) history.push("/login");
-      else history.push("/register");
-    }
-  }, [user, history, isLoggedIn]);
+	useEffect(() => {
+		// when fetching, prevent redirect
+		if (user?.isFetching) return;
 
-  useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        const { data } = await axios.get("/api/conversations");
-        setConversations(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    if (!user.isFetching) {
-      fetchConversations();
-    }
-  }, [user]);
+		if (user && user.id) {
+			setIsLoggedIn(true);
+		} else {
+			// If we were previously logged in, redirect to login instead of register
+			if (isLoggedIn) history.push("/login");
+			else history.push("/register");
+		}
+	}, [user, history, isLoggedIn]);
 
-  const handleLogout = async () => {
-    if (user && user.id) {
-      await logout(user.id);
-    }
-  };
+	useEffect(() => {
+		const fetchConversations = async () => {
+			try {
+				const { data } = await axios.get("/api/conversations");
+				setConversations(data);
+			} catch (error) {
+				console.error(error);
+			}
+		};
+		if (!user.isFetching) {
+			fetchConversations();
+		}
+	}, [user]);
 
-  return (
-    <>
-      <Button onClick={handleLogout}>Logout</Button>
-      <Grid container component="main" className={classes.root}>
-        <CssBaseline />
-        <SidebarContainer
-          conversations={conversations}
-          user={user}
-          clearSearchedUsers={clearSearchedUsers}
-          addSearchedUsers={addSearchedUsers}
-          setActiveChat={setActiveChat}
-        />
-        <ActiveChat
-          activeConversation={activeConversation}
-          conversations={conversations}
-          user={user}
-          postMessage={postMessage}
-        />
-      </Grid>
-    </>
-  );
+	const handleLogout = async () => {
+		if (user && user.id) {
+			await logout(user.id);
+		}
+	};
+
+	return (
+		<>
+			<Button onClick={handleLogout}>Logout</Button>
+			<Grid container component="main" className={classes.root}>
+				<CssBaseline />
+				<SidebarContainer
+					conversations={conversations}
+					user={user}
+					clearSearchedUsers={clearSearchedUsers}
+					addSearchedUsers={addSearchedUsers}
+					setActiveChat={setActiveChat}
+				/>
+				<ActiveChat
+					activeConversation={activeConversation}
+					conversations={conversations}
+					user={user}
+					postMessage={postMessage}
+				/>
+			</Grid>
+		</>
+	);
 };
 
 export default Home;
