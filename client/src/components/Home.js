@@ -7,6 +7,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { SidebarContainer } from "../components/Sidebar";
 import { ActiveChat } from "../components/ActiveChat";
 import { SocketContext } from "../context/socket";
+import moment from "moment";
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -62,7 +63,7 @@ const Home = ({ user, logout }) => {
 		});
 	};
 
-	// Bug fixed: turned postMessage into an async function
+	// JQ: postMessage should be an async function
 	const postMessage = async (body) => {
 		try {
 			const data = await saveMessage(body);
@@ -80,13 +81,13 @@ const Home = ({ user, logout }) => {
 
 	const addNewConvo = useCallback(
 		(recipientId, message) => {
-			// Bug fixed: refactored to use previous state rather than mutating state directly
+			// JQ: use previous state rather than mutating state directly
 			setConversations((prev) => {
-				const updated = prev.map((convo) => {
+				return prev.map((convo) => {
 					if (convo.otherUser.id === recipientId) {
 						return {
 							...convo,
-							messages: [message],
+							messages: [...convo.messages, message],
 							latestMessageText: message.text,
 							id: message.conversationId,
 						};
@@ -94,7 +95,6 @@ const Home = ({ user, logout }) => {
 						return convo;
 					}
 				});
-				return [...updated];
 			});
 		},
 		[setConversations]
@@ -115,9 +115,9 @@ const Home = ({ user, logout }) => {
 				setConversations((prev) => [newConvo, ...prev]);
 			}
 
-			// Bug fixed: refactored to use previous state rather than mutating state directly
+			// JQ: use previous state rather than mutating state directly
 			setConversations((prev) => {
-				const updated = prev.map((convo) => {
+				return prev.map((convo) => {
 					if (convo.id === message.conversationId) {
 						return {
 							...convo,
@@ -128,7 +128,6 @@ const Home = ({ user, logout }) => {
 						return convo;
 					}
 				});
-				return [...updated];
 			});
 		},
 		[setConversations, conversations]
@@ -200,7 +199,17 @@ const Home = ({ user, logout }) => {
 		const fetchConversations = async () => {
 			try {
 				const { data } = await axios.get("/api/conversations");
-				setConversations(data);
+				// JQ: map over fetched convos and sort messages in state setter callback
+				setConversations(
+					data.map((convo) => {
+						return {
+							...convo,
+							messages: convo.messages.sort((a, b) =>
+								moment(b.createdAt) < moment(a.createdAt) ? 1 : -1
+							),
+						};
+					})
+				);
 			} catch (error) {
 				console.error(error);
 			}
