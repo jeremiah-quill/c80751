@@ -208,6 +208,7 @@ const Login = ({ user, login }) => {
 							<InputLabel htmlFor="password">Password</InputLabel>
 							<Input
 								required
+                name="password"
 								aria-label="password"
 								id="password"
 								type="password"
