@@ -1,57 +1,133 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { FormControl, FilledInput } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(() => ({
-  root: {
-    justifySelf: 'flex-end',
-    marginTop: 15,
-  },
-  input: {
-    height: 70,
-    backgroundColor: '#F4F6FA',
-    borderRadius: 8,
-    marginBottom: 20,
-  },
+	root: {
+		justifySelf: 'flex-end',
+		marginTop: 15,
+		position: 'relative',
+	},
+	input: {
+		height: 70,
+		backgroundColor: '#F4F6FA',
+		borderRadius: 8,
+		marginBottom: 20,
+	},
+	uploadInput: {
+		opacity: 0,
+		position: 'absolute',
+		zIndex: -1,
+	},
+	uploadInputLabel: {
+		position: 'absolute',
+		right: 12,
+		top: 25,
+		cursor: 'pointer',
+	},
+	imgPreview: {
+		position: 'absolute',
+		right: 0,
+		top: '-20px',
+		fontSize: '8px',
+		display: 'flex',
+		gap: '4px',
+	},
 }));
 
 const Input = ({ otherUser, conversationId, user, postMessage }) => {
-  const classes = useStyles();
-  const [text, setText] = useState('');
+	const classes = useStyles();
+	const [text, setText] = useState('');
+	const [attachments, setAttachments] = useState([]);
 
-  const handleChange = (event) => {
-    setText(event.target.value);
-  };
+	// JQ: create a new instance of axios to reset headers
+	const instance = axios.create();
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formElements = form.elements;
-    // add sender user info if posting to a brand new convo, so that the other user will have access to username, profile pic, etc.
-    const reqBody = {
-      text: formElements.text.value,
-      recipientId: otherUser.id,
-      conversationId,
-      sender: conversationId ? null : user,
-    };
-    await postMessage(reqBody);
-    setText('');
-  };
+	const handleChange = (event) => {
+		setText(event.target.value);
+	};
 
-  return (
-    <form className={classes.root} onSubmit={handleSubmit}>
-      <FormControl fullWidth hiddenLabel>
-        <FilledInput
-          classes={{ root: classes.input }}
-          disableUnderline
-          placeholder="Type something..."
-          value={text}
-          name="text"
-          onChange={handleChange}
-        />
-      </FormControl>
-    </form>
-  );
+	// JQ: add file objects to state when they are selected
+	const handleAttachmentChange = (e) => {
+		let fileList = Array.from(e.target.files);
+		setAttachments(fileList);
+	};
+
+	const uploadImage = async (image) => {
+		// JQ: create form data with image (using an unsigned upload preset)
+		let formData = new FormData();
+		formData.append('upload_preset', 'lipzwxls');
+		formData.append('file', image);
+
+		// JQ: send request to cloudinary to upload image
+		let response = await instance.post(
+			`https://api.cloudinary.com/v1_1/dww49dex1/image/upload`,
+			formData
+		);
+
+		// JQ: return url from cloudinary request
+		return response.data.url;
+	};
+
+	const handleSubmit = async (event) => {
+		event.preventDefault();
+		const form = event.currentTarget;
+		const formElements = form.elements;
+
+		// upload images on form submit and get back urls to add to the message request body
+		let urls = [];
+		if (attachments.length > 0) {
+			for (let i = 0; i < attachments.length; i++) {
+				let url = await uploadImage(attachments[i]);
+				urls.push(url);
+			}
+		}
+
+		// add sender user info if posting to a brand new convo, so that the other user will have access to username, profile pic, etc.
+		const reqBody = {
+			text: formElements.text.value,
+			attachments: urls,
+			recipientId: otherUser.id,
+			conversationId,
+			sender: conversationId ? null : user,
+		};
+		await postMessage(reqBody);
+		setText('');
+		setAttachments([]);
+	};
+
+	return (
+		<form className={classes.root} onSubmit={handleSubmit}>
+			<div className={classes.imgPreview}>
+				{attachments.map((attachment, idx) => (
+					<p key={idx}>{attachment.name}</p>
+				))}
+			</div>
+			<FormControl fullWidth hiddenLabel>
+				<FilledInput
+					classes={{ root: classes.input }}
+					disableUnderline
+					placeholder='Type something...'
+					value={text}
+					name='text'
+					onChange={handleChange}
+				/>
+				<label className={classes.uploadInputLabel} htmlFor='upload-input'>
+					Upload Image
+				</label>
+				<input
+					type='file'
+					name='image'
+					className={classes.uploadInput}
+					onChange={handleAttachmentChange}
+					id='upload-input'
+					files={attachments}
+					multiple
+				/>
+			</FormControl>
+		</form>
+	);
 };
 
 export default Input;
