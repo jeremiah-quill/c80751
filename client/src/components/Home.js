@@ -1,17 +1,16 @@
-import React, { useCallback, useEffect, useState, useContext } from "react";
-import axios from "axios";
-import { useHistory } from "react-router-dom";
-import { Grid, CssBaseline, Button } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
+import React, { useCallback, useEffect, useState, useContext } from 'react';
+import axios from 'axios';
+import { useHistory } from 'react-router-dom';
+import { Grid, CssBaseline, Button } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 
-import { SidebarContainer } from "../components/Sidebar";
-import { ActiveChat } from "../components/ActiveChat";
-import { SocketContext } from "../context/socket";
-import moment from "moment";
+import { SidebarContainer } from '../components/Sidebar';
+import { ActiveChat } from '../components/ActiveChat';
+import { SocketContext } from '../context/socket';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
-		height: "100vh",
+		height: '100vh',
 	},
 }));
 
@@ -51,12 +50,12 @@ const Home = ({ user, logout }) => {
 	};
 
 	const saveMessage = async (body) => {
-		const { data } = await axios.post("/api/messages", body);
+		const { data } = await axios.post('/api/messages', body);
 		return data;
 	};
 
 	const sendMessage = (data, body) => {
-		socket.emit("new-message", {
+		socket.emit('new-message', {
 			message: data.message,
 			recipientId: body.recipientId,
 			sender: data.sender,
@@ -79,59 +78,52 @@ const Home = ({ user, logout }) => {
 		}
 	};
 
-	const addNewConvo = useCallback(
-		(recipientId, message) => {
-			// JQ: use previous state rather than mutating state directly
-			setConversations((prev) => {
-				return prev.map((convo) => {
-					if (convo.otherUser.id === recipientId) {
-						return {
-							...convo,
-							messages: [...convo.messages, message],
-							latestMessageText: message.text,
-							id: message.conversationId,
-						};
-					} else {
-						return convo;
-					}
-				});
+	const addNewConvo = useCallback((recipientId, message) => {
+		// JQ: use previous state rather than mutating state directly
+		setConversations((prev) => {
+			return prev.map((convo) => {
+				if (convo.otherUser.id === recipientId) {
+					return {
+						...convo,
+						messages: [...convo.messages, message],
+						latestMessageText: message.text,
+						id: message.conversationId,
+					};
+				} else {
+					return convo;
+				}
 			});
-		},
-		[setConversations]
-	);
-	const addMessageToConversation = useCallback(
-		(data) => {
-			// if sender isn't null, that means the message needs to be put in a brand new convo
-			const { message, sender = null } = data;
+		});
+	}, []);
+	const addMessageToConversation = useCallback((data) => {
+		// if sender isn't null, that means the message needs to be put in a brand new convo
+		const { message, sender = null } = data;
 
-			if (sender !== null) {
-				const newConvo = {
-					id: message.conversationId,
-					otherUser: sender,
-					messages: [message],
-				};
-				newConvo.latestMessageText = message.text;
+		if (sender !== null) {
+			const newConvo = {
+				id: message.conversationId,
+				otherUser: sender,
+				messages: [message],
+			};
+			newConvo.latestMessageText = message.text;
 
-				setConversations((prev) => [newConvo, ...prev]);
-			}
+			setConversations((prev) => [newConvo, ...prev]);
+		}
 
-			// JQ: use previous state rather than mutating state directly
-			setConversations((prev) => {
-				return prev.map((convo) => {
-					if (convo.id === message.conversationId) {
-						return {
-							...convo,
-							messages: [...convo.messages, message],
-							latestMessageText: message.text,
-						};
-					} else {
-						return convo;
-					}
-				});
+		setConversations((prev) => {
+			return prev.map((convo) => {
+				if (convo.id === message.conversationId) {
+					return {
+						...convo,
+						messages: [...convo.messages, message],
+						latestMessageText: message.text,
+					};
+				} else {
+					return convo;
+				}
 			});
-		},
-		[setConversations, conversations]
-	);
+		});
+	}, []);
 
 	const setActiveChat = (username) => {
 		setActiveConversation(username);
@@ -169,16 +161,16 @@ const Home = ({ user, logout }) => {
 
 	useEffect(() => {
 		// Socket init
-		socket.on("add-online-user", addOnlineUser);
-		socket.on("remove-offline-user", removeOfflineUser);
-		socket.on("new-message", addMessageToConversation);
+		socket.on('add-online-user', addOnlineUser);
+		socket.on('remove-offline-user', removeOfflineUser);
+		socket.on('new-message', addMessageToConversation);
 
 		return () => {
 			// before the component is destroyed
 			// unbind all event handlers used in this component
-			socket.off("add-online-user", addOnlineUser);
-			socket.off("remove-offline-user", removeOfflineUser);
-			socket.off("new-message", addMessageToConversation);
+			socket.off('add-online-user', addOnlineUser);
+			socket.off('remove-offline-user', removeOfflineUser);
+			socket.off('new-message', addMessageToConversation);
 		};
 	}, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
 
@@ -190,26 +182,19 @@ const Home = ({ user, logout }) => {
 			setIsLoggedIn(true);
 		} else {
 			// If we were previously logged in, redirect to login instead of register
-			if (isLoggedIn) history.push("/login");
-			else history.push("/register");
+			if (isLoggedIn) history.push('/login');
+			else history.push('/register');
 		}
 	}, [user, history, isLoggedIn]);
 
 	useEffect(() => {
 		const fetchConversations = async () => {
 			try {
-				const { data } = await axios.get("/api/conversations");
-				// JQ: map over fetched convos and sort messages in state setter callback
-				setConversations(
-					data.map((convo) => {
-						return {
-							...convo,
-							messages: convo.messages.sort((a, b) =>
-								moment(b.createdAt) < moment(a.createdAt) ? 1 : -1
-							),
-						};
-					})
-				);
+				const { data } = await axios.get('/api/conversations');
+
+				data.forEach((convo) => convo.messages.reverse());
+
+				setConversations(data);
 			} catch (error) {
 				console.error(error);
 			}
@@ -228,7 +213,7 @@ const Home = ({ user, logout }) => {
 	return (
 		<>
 			<Button onClick={handleLogout}>Logout</Button>
-			<Grid container component="main" className={classes.root}>
+			<Grid container component='main' className={classes.root}>
 				<CssBaseline />
 				<SidebarContainer
 					conversations={conversations}
