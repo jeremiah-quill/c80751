@@ -49,28 +49,21 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
 		setText(event.target.value);
 	};
 
-	// JQ: add file objects to state when they are selected
 	const handleAttachmentChange = (e) => {
 		const fileList = Array.from(e.target.files);
 		setAttachments(fileList);
 	};
 
-	// lipzwxls
-	// dww49dex1
-
 	const uploadImage = async (image) => {
-		// JQ: create form data with image (using an unsigned upload preset)
 		const formData = new FormData();
 		formData.append('upload_preset', 'lipzwxls');
 		formData.append('file', image);
 
-		// JQ: send request to cloudinary to upload image
 		const response = await instance.post(
 			`https://api.cloudinary.com/v1_1/dww49dex1/image/upload`,
 			formData
 		);
 
-		// JQ: return url from cloudinary request
 		return response.data.url;
 	};
 
@@ -79,21 +72,14 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
 		const form = event.currentTarget;
 		const formElements = form.elements;
 
-		console.log(attachments);
-
-		// upload images on form submit and get back urls to add to the message request body
-		const urls = [];
-		if (attachments.length > 0) {
-			for (let i = 0; i < attachments.length; i++) {
-				let url = await uploadImage(attachments[i]);
-				urls.push(url);
-			}
-		}
+		const getAllUrls = async (files) => {
+			return await Promise.all(files.map((file) => uploadImage(file)));
+		};
 
 		// add sender user info if posting to a brand new convo, so that the other user will have access to username, profile pic, etc.
 		const reqBody = {
 			text: formElements.text.value,
-			attachments: urls,
+			attachments: await getAllUrls(attachments),
 			recipientId: otherUser.id,
 			conversationId,
 			sender: conversationId ? null : user,
