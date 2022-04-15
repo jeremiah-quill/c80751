@@ -1,111 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import {
-  Grid,
-  Box,
-  Typography,
-  Button,
-  FormControl,
-  TextField,
-  FormHelperText,
-} from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
+import { Box, Button, FormControl, TextField, FormHelperText } from '@material-ui/core';
+import LoginRegisterWrapper from './components/LoginRegisterWrapper';
+import formStyles from './LoginRegisterForm.styles.js';
 
 const Signup = ({ user, register }) => {
-  const history = useHistory();
+	const classes = formStyles();
 
-  const [formErrorMessage, setFormErrorMessage] = useState({});
+	const history = useHistory();
 
-  const handleRegister = async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formElements = form.elements;
-    const username = formElements.username.value;
-    const email = formElements.email.value;
-    const password = formElements.password.value;
-    const confirmPassword = formElements.confirmPassword.value;
+	const [formErrorMessage, setFormErrorMessage] = useState({});
 
-    if (password !== confirmPassword) {
-      setFormErrorMessage({ confirmPassword: 'Passwords must match' });
-      return;
-    }
-    await register({ username, email, password });
-  };
+	const handleRegister = async (event) => {
+		event.preventDefault();
+		const form = event.currentTarget;
+		const formElements = form.elements;
+		const username = formElements.username.value;
+		const email = formElements.email.value;
+		const password = formElements.password.value;
+		const confirmPassword = formElements.confirmPassword.value;
 
-  useEffect(() => {
-    if (user && user.id) history.push('/home');
-  }, [user, history]);
+		if (password !== confirmPassword) {
+			setFormErrorMessage({ confirmPassword: 'Passwords must match' });
+			return;
+		}
+		await register({ username, email, password });
+	};
 
-  return (
-    <Grid container justifyContent="center">
-      <Box>
-        <Grid container item>
-          <Typography>Need to log in?</Typography>
-          <Link href="/login" to="/login">
-            <Button>Login</Button>
-          </Link>
-        </Grid>
-        <form onSubmit={handleRegister}>
-          <Grid>
-            <Grid>
-              <FormControl>
-                <TextField
-                  aria-label="username"
-                  label="Username"
-                  name="username"
-                  type="text"
-                  required
-                />
-              </FormControl>
-            </Grid>
-            <Grid>
-              <FormControl>
-                <TextField
-                  label="E-mail address"
-                  aria-label="e-mail address"
-                  type="email"
-                  name="email"
-                  required
-                />
-              </FormControl>
-            </Grid>
-            <Grid>
-              <FormControl error={!!formErrorMessage.confirmPassword}>
-                <TextField
-                  aria-label="password"
-                  label="Password"
-                  type="password"
-                  inputProps={{ minLength: 6 }}
-                  name="password"
-                  required
-                />
-                <FormHelperText>
-                  {formErrorMessage.confirmPassword}
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-            <Grid>
-              <FormControl error={!!formErrorMessage.confirmPassword}>
-                <TextField
-                  label="Confirm Password"
-                  aria-label="confirm password"
-                  type="password"
-                  inputProps={{ minLength: 6 }}
-                  name="confirmPassword"
-                  required
-                />
-                <FormHelperText>
-                  {formErrorMessage.confirmPassword}
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-            <Button type="submit" variant="contained" size="large">
-              Create
-            </Button>
-          </Grid>
-        </form>
-      </Box>
-    </Grid>
-  );
+	useEffect(() => {
+		if (user && user.id) history.push('/home');
+	}, [user, history]);
+
+	return (
+		<LoginRegisterWrapper view={'register'}>
+			<Box className={classes.form} component="form" noValidate onSubmit={handleRegister}>
+				<TextField
+					fullWidth
+					aria-label="username"
+					label="Username"
+					name="username"
+					type="text"
+					required
+				/>
+				<TextField
+					fullWidth
+					aria-label="email address"
+					label="E-mail address"
+					name="email"
+					type="email"
+					required
+				/>
+				<FormControl error={!!formErrorMessage.confirmPassword} fullWidth>
+					<TextField
+						aria-label="password"
+						label="Password"
+						type="password"
+						inputProps={{ minLength: 6 }}
+						name="password"
+						required
+					/>
+					<FormHelperText>{formErrorMessage.confirmPassword}</FormHelperText>
+				</FormControl>
+				<FormControl error={!!formErrorMessage.confirmPassword} fullWidth>
+					<TextField
+						label="Confirm Password"
+						aria-label="confirm password"
+						type="password"
+						inputProps={{ minLength: 6 }}
+						name="confirmPassword"
+						required
+					/>
+					<FormHelperText>{formErrorMessage.confirmPassword}</FormHelperText>
+				</FormControl>
+				<Button type="submit" variant="contained" className={classes.ctaBtn}>
+					Create
+				</Button>
+			</Box>
+		</LoginRegisterWrapper>
+	);
 };
 
 export default Signup;
