@@ -3,9 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Message from './Message';
 
 const useStyles = makeStyles(() => ({
-	root: {
-		display: 'flex',
-		flexDirection: 'column',
+	message: {
 		alignItems: 'flex-end',
 	},
 	textColor: {

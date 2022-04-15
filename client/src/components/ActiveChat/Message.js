@@ -7,10 +7,6 @@ const useStyles = makeStyles(() => ({
 	message: {
 		display: 'flex',
 		flexDirection: 'column',
-		alignItems: 'flex-start',
-	},
-	userMessage: {
-		alignItems: 'flex-end',
 	},
 	messageReverse: {
 		flexDirection: 'column-reverse',
@@ -34,7 +30,7 @@ const Message = ({ text, time, otherUser, imgUrls, messageClasses }) => {
 
 	return (
 		<Box
-			className={`${classes.message} ${!otherUser && classes.userMessage} ${
+			className={`${classes.message} ${messageClasses.message} ${
 				imgUrls?.length > 1 && classes.messageReverse
 			}`}>
 			<Typography className={classes.date}>
