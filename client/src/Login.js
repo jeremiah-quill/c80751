@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
-import { useHistory } from "react-router-dom";
-import { Box, Button, TextField } from "@material-ui/core";
-import LoginRegisterWrapper from "./components/LoginRegisterWrapper";
-import formStyles from "./LoginRegisterForm.styles.js";
+import React, { useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import { Box, Button, TextField } from '@material-ui/core';
+import LoginRegisterWrapper from './components/LoginRegisterWrapper';
+import formStyles from './LoginRegisterForm.styles.js';
 
 const Login = ({ user, login }) => {
 	const classes = formStyles();
@@ -20,11 +20,11 @@ const Login = ({ user, login }) => {
 	};
 
 	useEffect(() => {
-		if (user && user.id) history.push("/home");
+		if (user && user.id) history.push('/home');
 	}, [user, history]);
 
 	return (
-		<LoginRegisterWrapper view={"login"}>
+		<LoginRegisterWrapper view={'login'}>
 			<Box
 				className={classes.form}
 				component='form'

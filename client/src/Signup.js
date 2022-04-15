@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
-import { Box, Button, FormControl, TextField, FormHelperText } from "@material-ui/core";
-import LoginRegisterWrapper from "./components/LoginRegisterWrapper";
-import formStyles from "./LoginRegisterForm.styles.js";
+import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import { Box, Button, FormControl, TextField, FormHelperText } from '@material-ui/core';
+import LoginRegisterWrapper from './components/LoginRegisterWrapper';
+import formStyles from './LoginRegisterForm.styles.js';
 
 const Signup = ({ user, register }) => {
 	const classes = formStyles();
@@ -21,18 +21,18 @@ const Signup = ({ user, register }) => {
 		const confirmPassword = formElements.confirmPassword.value;
 
 		if (password !== confirmPassword) {
-			setFormErrorMessage({ confirmPassword: "Passwords must match" });
+			setFormErrorMessage({ confirmPassword: 'Passwords must match' });
 			return;
 		}
 		await register({ username, email, password });
 	};
 
 	useEffect(() => {
-		if (user && user.id) history.push("/home");
+		if (user && user.id) history.push('/home');
 	}, [user, history]);
 
 	return (
-		<LoginRegisterWrapper view={"register"}>
+		<LoginRegisterWrapper view={'register'}>
 			<Box className={classes.form} component='form' noValidate onSubmit={handleRegister}>
 				<TextField
 					fullWidth
