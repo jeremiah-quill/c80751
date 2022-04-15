@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { FormControl, FilledInput } from '@material-ui/core';
+import { FormControl, FilledInput, Grid, Typography, Box } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import PhotoLibraryOutlinedIcon from '@material-ui/icons/PhotoLibraryOutlined';
 
 const useStyles = makeStyles(() => ({
 	root: {
@@ -23,26 +24,26 @@ const useStyles = makeStyles(() => ({
 	uploadInputLabel: {
 		position: 'absolute',
 		right: 12,
-		top: 25,
+		top: 22,
 		cursor: 'pointer',
 	},
 	imgPreview: {
 		position: 'absolute',
 		right: 0,
 		top: '-20px',
-		fontSize: '8px',
-		display: 'flex',
 		gap: '4px',
+		'& > p': {
+			fontSize: '8px',
+		},
 	},
 }));
+
+const instance = axios.create();
 
 const Input = ({ otherUser, conversationId, user, postMessage }) => {
 	const classes = useStyles();
 	const [text, setText] = useState('');
 	const [attachments, setAttachments] = useState([]);
-
-	// JQ: create a new instance of axios to reset headers
-	const instance = axios.create();
 
 	const handleChange = (event) => {
 		setText(event.target.value);
@@ -50,18 +51,21 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
 
 	// JQ: add file objects to state when they are selected
 	const handleAttachmentChange = (e) => {
-		let fileList = Array.from(e.target.files);
+		const fileList = Array.from(e.target.files);
 		setAttachments(fileList);
 	};
 
+	// lipzwxls
+	// dww49dex1
+
 	const uploadImage = async (image) => {
 		// JQ: create form data with image (using an unsigned upload preset)
-		let formData = new FormData();
+		const formData = new FormData();
 		formData.append('upload_preset', 'lipzwxls');
 		formData.append('file', image);
 
 		// JQ: send request to cloudinary to upload image
-		let response = await instance.post(
+		const response = await instance.post(
 			`https://api.cloudinary.com/v1_1/dww49dex1/image/upload`,
 			formData
 		);
@@ -75,8 +79,10 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
 		const form = event.currentTarget;
 		const formElements = form.elements;
 
+		console.log(attachments);
+
 		// upload images on form submit and get back urls to add to the message request body
-		let urls = [];
+		const urls = [];
 		if (attachments.length > 0) {
 			for (let i = 0; i < attachments.length; i++) {
 				let url = await uploadImage(attachments[i]);
@@ -98,35 +104,37 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
 	};
 
 	return (
-		<form className={classes.root} onSubmit={handleSubmit}>
-			<div className={classes.imgPreview}>
-				{attachments.map((attachment, idx) => (
-					<p key={idx}>{attachment.name}</p>
+		<Box component="form" className={classes.root} onSubmit={handleSubmit}>
+			<Grid container justifyContent="flex-end" className={classes.imgPreview}>
+				{attachments.map((attachment) => (
+					<Typography component="p" key={attachment.name}>
+						{attachment.name}
+					</Typography>
 				))}
-			</div>
+			</Grid>
 			<FormControl fullWidth hiddenLabel>
 				<FilledInput
 					classes={{ root: classes.input }}
 					disableUnderline
-					placeholder='Type something...'
+					placeholder="Type something..."
 					value={text}
-					name='text'
+					name="text"
 					onChange={handleChange}
 				/>
-				<label className={classes.uploadInputLabel} htmlFor='upload-input'>
-					Upload Image
+				<label className={classes.uploadInputLabel} htmlFor="upload-input">
+					<PhotoLibraryOutlinedIcon htmlColor="lightgray" />
 				</label>
 				<input
-					type='file'
-					name='image'
+					type="file"
+					name="image"
 					className={classes.uploadInput}
 					onChange={handleAttachmentChange}
-					id='upload-input'
+					id="upload-input"
 					files={attachments}
 					multiple
 				/>
 			</FormControl>
-		</form>
+		</Box>
 	);
 };
 
