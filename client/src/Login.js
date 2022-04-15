@@ -27,27 +27,27 @@ const Login = ({ user, login }) => {
 		<LoginRegisterWrapper view={'login'}>
 			<Box
 				className={classes.form}
-				component='form'
+				component="form"
 				noValidate
 				onSubmit={handleLogin}
 				sx={{ mt: 1 }}>
 				<TextField
 					fullWidth
-					aria-label='username'
-					label='Username'
-					name='username'
-					type='text'
+					aria-label="username"
+					label="Username"
+					name="username"
+					type="text"
 					required
 				/>
 				<TextField
 					fullWidth
-					aria-label='password'
-					label='Password'
-					name='password'
-					type='password'
+					aria-label="password"
+					label="Password"
+					name="password"
+					type="password"
 					required
 				/>
-				<Button type='submit' variant='contained' className={classes.ctaBtn}>
+				<Button type="submit" variant="contained" className={classes.ctaBtn}>
 					Login
 				</Button>
 			</Box>

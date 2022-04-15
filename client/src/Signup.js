@@ -33,46 +33,46 @@ const Signup = ({ user, register }) => {
 
 	return (
 		<LoginRegisterWrapper view={'register'}>
-			<Box className={classes.form} component='form' noValidate onSubmit={handleRegister}>
+			<Box className={classes.form} component="form" noValidate onSubmit={handleRegister}>
 				<TextField
 					fullWidth
-					aria-label='username'
-					label='Username'
-					name='username'
-					type='text'
+					aria-label="username"
+					label="Username"
+					name="username"
+					type="text"
 					required
 				/>
 				<TextField
 					fullWidth
-					aria-label='email address'
-					label='E-mail address'
-					name='email'
-					type='email'
+					aria-label="email address"
+					label="E-mail address"
+					name="email"
+					type="email"
 					required
 				/>
 				<FormControl error={!!formErrorMessage.confirmPassword} fullWidth>
 					<TextField
-						aria-label='password'
-						label='Password'
-						type='password'
+						aria-label="password"
+						label="Password"
+						type="password"
 						inputProps={{ minLength: 6 }}
-						name='password'
+						name="password"
 						required
 					/>
 					<FormHelperText>{formErrorMessage.confirmPassword}</FormHelperText>
 				</FormControl>
 				<FormControl error={!!formErrorMessage.confirmPassword} fullWidth>
 					<TextField
-						label='Confirm Password'
-						aria-label='confirm password'
-						type='password'
+						label="Confirm Password"
+						aria-label="confirm password"
+						type="password"
 						inputProps={{ minLength: 6 }}
-						name='confirmPassword'
+						name="confirmPassword"
 						required
 					/>
 					<FormHelperText>{formErrorMessage.confirmPassword}</FormHelperText>
 				</FormControl>
-				<Button type='submit' variant='contained' className={classes.ctaBtn}>
+				<Button type="submit" variant="contained" className={classes.ctaBtn}>
 					Create
 				</Button>
 			</Box>

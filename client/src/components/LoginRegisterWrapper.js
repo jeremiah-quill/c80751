@@ -101,36 +101,36 @@ const useStyles = makeStyles((theme) => ({
 const LoginRegisterWrapper = ({ view, children }) => {
 	const classes = useStyles();
 	return (
-		<Grid component='main' className={classes.root}>
+		<Grid component="main" className={classes.root}>
 			<Grid item className={classes.sideBanner}>
 				<Grid
 					container
 					className={classes.bgImgOverlay}
-					justifyContent='center'
-					alignItems='center'>
+					justifyContent="center"
+					alignItems="center">
 					<Grid item className={classes.overlayContent}>
-						<img src='./assets/images/bubble.svg' alt='chat icon' />
-						<Typography component='h2' className={classes.overlayText}>
+						<img src="./assets/images/bubble.svg" alt="chat icon" />
+						<Typography component="h2" className={classes.overlayText}>
 							Converse with anyone with any language
 						</Typography>
 					</Grid>
 				</Grid>
 				<img
 					className={classes.bgImg}
-					src='./assets/images/bg-img.png'
-					alt='people sending phone messages'
+					src="./assets/images/bg-img.png"
+					alt="people sending phone messages"
 				/>
 			</Grid>
 			<Grid
 				className={classes.formPanel}
 				container
 				item
-				justifyContent='center'
-				alignItems='center'>
+				justifyContent="center"
+				alignItems="center">
 				<Grid
 					container
-					justifyContent='space-between'
-					alignItems='center'
+					justifyContent="space-between"
+					alignItems="center"
 					className={classes.accountSwitch}>
 					<Typography className={classes.accountText}>
 						{view === 'register' ? 'Already have an account?' : "Don't have an account?"}
@@ -145,7 +145,7 @@ const LoginRegisterWrapper = ({ view, children }) => {
 					</Link>
 				</Grid>
 				<Box className={classes.formPanelContent}>
-					<Typography component='h1' className={classes.formPanelHeader}>
+					<Typography component="h1" className={classes.formPanelHeader}>
 						{view === 'register' ? 'Create an account.' : 'Welcome back!'}
 					</Typography>
 					{children}
