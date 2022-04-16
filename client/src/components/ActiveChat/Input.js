@@ -56,11 +56,11 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
 
 	const uploadImage = async (image) => {
 		const formData = new FormData();
-		formData.append('upload_preset', 'lipzwxls');
+		formData.append('upload_preset', process.env.REACT_APP_UPLOAD_PRESET);
 		formData.append('file', image);
 
 		const response = await instance.post(
-			`https://api.cloudinary.com/v1_1/dww49dex1/image/upload`,
+			`https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUD_NAME}/image/upload`,
 			formData
 		);
 
