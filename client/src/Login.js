@@ -1,70 +1,58 @@
 import React, { useEffect } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import {
-  Grid,
-  Box,
-  Typography,
-  Button,
-  FormControl,
-  TextField,
-} from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
+import { Box, Button, TextField } from '@material-ui/core';
+import LoginRegisterWrapper from './components/LoginRegisterWrapper';
+import formStyles from './LoginRegisterForm.styles.js';
 
 const Login = ({ user, login }) => {
-  const history = useHistory();
+	const classes = formStyles();
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formElements = form.elements;
-    const username = formElements.username.value;
-    const password = formElements.password.value;
+	const history = useHistory();
 
-    await login({ username, password });
-  };
+	const handleLogin = async (event) => {
+		event.preventDefault();
+		const form = event.currentTarget;
+		const formElements = form.elements;
+		const username = formElements.username.value;
+		const password = formElements.password.value;
 
-  useEffect(() => {
-    if (user && user.id) history.push('/home');
-  }, [user, history]);
+		await login({ username, password });
+	};
 
-  return (
-    <Grid container justifyContent="center">
-      <Box>
-        <Grid container item>
-          <Typography>Need to register?</Typography>
-          <Link href="/register" to="/register">
-            <Button>Register</Button>
-          </Link>
-        </Grid>
-        <form onSubmit={handleLogin}>
-          <Grid>
-            <Grid>
-              <FormControl margin="normal" required>
-                <TextField
-                  aria-label="username"
-                  label="Username"
-                  name="username"
-                  type="text"
-                />
-              </FormControl>
-            </Grid>
-            <FormControl margin="normal" required>
-              <TextField
-                label="password"
-                aria-label="password"
-                type="password"
-                name="password"
-              />
-            </FormControl>
-            <Grid>
-              <Button type="submit" variant="contained" size="large">
-                Login
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Box>
-    </Grid>
-  );
+	useEffect(() => {
+		if (user && user.id) history.push('/home');
+	}, [user, history]);
+
+	return (
+		<LoginRegisterWrapper view={'login'}>
+			<Box
+				className={classes.form}
+				component="form"
+				noValidate
+				onSubmit={handleLogin}
+				sx={{ mt: 1 }}>
+				<TextField
+					fullWidth
+					aria-label="username"
+					label="Username"
+					name="username"
+					type="text"
+					required
+				/>
+				<TextField
+					fullWidth
+					aria-label="password"
+					label="Password"
+					name="password"
+					type="password"
+					required
+				/>
+				<Button type="submit" variant="contained" className={classes.ctaBtn}>
+					Login
+				</Button>
+			</Box>
+		</LoginRegisterWrapper>
+	);
 };
 
 export default Login;
