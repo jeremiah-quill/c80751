@@ -54,32 +54,27 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
     setAttachments(fileList);
   };
 
-  const uploadImage = async (image) => {
+  const uploadImage = (image) => {
     const formData = new FormData();
     formData.append('upload_preset', process.env.REACT_APP_UPLOAD_PRESET);
     formData.append('file', image);
 
-    const response = await instance.post(
+    return instance.post(
       `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUD_NAME}/image/upload`,
       formData
     );
-
-    return response.data.url;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const formElements = form.elements;
-
-    const getAllUrls = async (files) => {
-      return await Promise.all(files.map((file) => uploadImage(file)));
-    };
-
+    const uploadResponses = await Promise.all(attachments.map((file) => uploadImage(file)));
+    const urls = uploadResponses.map((res) => res.data.url);
     // add sender user info if posting to a brand new convo, so that the other user will have access to username, profile pic, etc.
     const reqBody = {
       text: formElements.text.value,
-      attachments: await getAllUrls(attachments),
+      attachments: urls,
       recipientId: otherUser.id,
       conversationId,
       sender: conversationId ? null : user,
